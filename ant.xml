@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<project default="main" basedir=".">
+	<echo message="Iniciando ant"/>
+	<property name="app" value="G5ServiceAPI"/>
+	<property name="currentVersion" value="0.0.1"/>
+	<property name="currentBuild" value="0"/>	
+	<property name="domain" value="c:\glassfish3\glassfish\domains\domain1\autodeploy\"/>
+	<property name="teste95" value="\\teste95\c$\glassfish3\glassfish\domains\domain2\autodeploy\"/>
+	<target name="main" description="Criando o .war">		
+		<antcall target="update.version.build" />		
+		<war basedir="${basedir}/build" destfile="${app}.war" webxml="${basedir}/WebContent/WEB-INF/web.xml">
+			<fileset dir="WebContent"/>
+			<fileset dir="/${basedir}/doc/"/>
+			<fileset dir="/${basedir}/src">
+				<filename name="**/*.java"/>				
+			</fileset>
+			<classes dir="build/classes"/>
+	    </war>		
+		<antcall target="deployWar" />	 			
+	</target>		
+	<property name="versionFileName" value="WebContent\build.properties" />
+	<property file="${versionFileName}" /> 
+	
+	<target name="calculate.version.build">
+	    <script language="javascript">
+	        <![CDATA[             
+	            var currentVersion = project.getProperty("currentVersion");
+	            var oldVersion = project.getProperty("version.number");
+	            var buildNumber = project.getProperty("build.number");
+
+	            if (!currentVersion.equals(oldVersion)){
+	                project.setProperty("currentBuild", 1);
+	            } else {
+	                var newBuildNumber = ++buildNumber;
+	                project.setProperty("currentBuild", newBuildNumber);
+	            }
+	        ]]> 
+	    </script>
+	</target>
+	<target name="update.version.build" depends="calculate.version.build">
+	    <propertyfile file="${versionFileName}">
+	        <entry key="build.number" type="int" operation="=" value="${currentBuild}" />
+	        <entry key="version.number" type="string" operation="=" value="${currentVersion}" />
+	    </propertyfile>
+	    <echo message="New version: ${currentVersion}.${currentBuild}" />		
+	</target>	
+	<target name="deployWar">
+		<echo message="Deploing in ${domain}"/>		
+		<copy file="${app}.war" tofile="${domain}${app}.war"/>
+		<copy file="${app}.war" tofile="${teste95}${app}.war"/>
+			<copy file="${app}.war" tofile="\\seniorpdc\usuarios\marcio.poffo\${app}.war"/>
+	 	<echo message="Deployed" />
+	</target>
+</project>
